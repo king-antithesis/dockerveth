@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # Copyright (c) 2017 Micah Culpepper
 # Copyright (c) 2020 Jeremy King
