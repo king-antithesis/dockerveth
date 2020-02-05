@@ -50,8 +50,9 @@ get_veth () {
     # Output: the veth name, like "veth6638cfa"
     c_if_index=$(get_container_if_index "$1")
     a="${podmanveth__link#*${c_if_index}: veth}"
-    b="veth${a%%@if*}"
-    printf "${b}"
+    b="${a%%@if*}"
+    c="veth${b%%:*}"
+    printf "${c}"
 }
 
 get_container_if_index () {
@@ -62,7 +63,8 @@ get_container_if_index () {
     ip_netns_export "$c_pid"
     ils=$(ip netns exec "ns-${c_pid}" ip link show type veth)
     ils="${ils%%: <*}"
-    printf "${ils##*if}"
+    ils="${ils##*if}"
+    printf "${ils%: *}"
 }
 
 ip_netns_export () {
