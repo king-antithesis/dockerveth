@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Copyright (c) 2017 Micah Culpepper
 # Copyright (c) 2020 Jeremy King
@@ -23,7 +23,7 @@
 
 usage () {
     printf %s \
-"podmanveth.sh - Show which podman containers are attached to which
+"podmanveth.sh - Show which running podman containers are attached to which
 \`veth\` interfaces.
 Usage: podmanveth.sh [PODMAN PS OPTIONS] | [-h, --help]
 Options:
@@ -90,11 +90,12 @@ make_row () {
     # Input:
     #     1 - The container ID
     #     2 - The container's friendly name
-    # Output: A row of data, like "1e8656e195ba	veth1ce04be	thirsty_meitner"
+    # Output: A tab delimited row of data, like "1e8656e195ba	veth1ce04be	thirsty_meitner	10.0.0.2"
     id="${1}"
     name="${2}"
     veth=$(get_veth "$id")
-    printf "${id}\t${veth}\t${name}"
+    ip_addr="${3}"
+    printf "${id}\t${veth}\t${name}\t${ip_addr}"
 }
 
 make_table () {
@@ -105,7 +106,8 @@ make_table () {
     for i in $@; do
         id="${i%%:*}"
         name="${i#*:}"
-        r=$(make_row "$id" "$name")
+        ip_addr=`podman inspect --format {{.NetworkSettings.IPAddress}} $id`
+        r=$(make_row "$id" "$name" "$ip_addr")
         printf "${r}\n"
     done
 }
@@ -134,6 +136,6 @@ container_data=$(get_container_data "$@")
 podmanveth__link="$(ip link show type veth)"
 table=$(make_table $container_data)
 if [ -t 1 ]; then
-    printf "CONTAINER ID\tVETH       \tNAMES\n"
+    printf "CONTAINER ID\tVETH       \tNAMES     \tIP\n"
 fi
 printf "${table}\n"
